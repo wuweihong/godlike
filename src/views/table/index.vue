@@ -216,7 +216,7 @@ export default {
 </style>
 
 <style>
-.el-table__header-wrapper{
+/* .el-table__header-wrapper{
   width: 100% !important;
   overflow: visible;
 }
@@ -226,6 +226,6 @@ export default {
 }
 .el-table--scrollable-x .el-table__body-wrapper {
   overflow-x: visible;
-}
+} */
 </style>
 

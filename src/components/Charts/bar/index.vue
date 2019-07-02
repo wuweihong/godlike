@@ -1,18 +1,8 @@
 <template>
   <div class="chart-container" >
-    <!-- 全屏 -->
-    <div v-show="isFull" class="full-container" id="bar-full" style="border:1px solid red;padding:20px">
-      <div>
-        <el-button  @click="fullScreen">关闭</el-button>
-      </div>
-      <chart height="100%" width="100%" 
-        className="barCharts" id="bar-full"
-        :themeType="themeType"/>
-    </div>
-
-    <div style="margin:20px 0" v-show="!isFull">
+    <div style="margin:20px 10px;" >
       <el-row :gutter="20">
-        <el-col :span="8">
+        <el-col :span="7">
           <div>
             <span>主题切换: </span>
             <el-select v-model="value" placeholder="请选择" @change="themeChange">
@@ -25,17 +15,44 @@
             </el-select>
           </div>
         </el-col>
-        <el-col :span="6">
-          点击全屏:
-          <el-button type="text" @click="fullScreen">全屏展示</el-button>
+        <el-col :span="7">
+          <div>
+            <span>图表切换: </span>
+            <el-select v-model="cvalue" placeholder="请选择" @change="chartsChange">
+              <el-option
+                v-for="item in chartsOptions"
+                :key="item.value"
+                :label="item.label" 
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </div>
+        </el-col>
+        <el-col :span="7">
+          <div>
+            <el-button type="primary" @click="xyChange">坐标切换</el-button>
+          </div>
         </el-col>
       </el-row>
     </div>
 
-    <chart height="100%" width="100%" 
+    <chart height="100%" width="60%" 
     className="barCharts" id="bar"
-    :themeType="themeType"/>
-
+    :themeType="themeType"
+    :chartsData="chartsData"
+    :reload="reload"/>
+    <div class="dataTable">
+      <h2>数据视图</h2>
+      <div>
+        <el-table :data="data_list">
+          <el-table-column  :label="date" v-for="(date, index) in header" :key="index">
+                <template slot-scope="scope">
+                    {{data_list[scope.$index][index]}}
+                </template>
+            </el-table-column>
+        </el-table>
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -44,21 +61,70 @@ import themeName from '../themeName'
 export default {
   name: 'barCharts',
   components: { Chart },
+  props: {
+    chartsData: {
+      type: Object,
+      default: () => {}
+    },
+    reload: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       themeType: 'macarons',
       options: themeName, // 主题名称
       value: 'macarons',
-      isFull: false // 全屏标识
+      cvalue: 'bar',
+      chartsOptions: [
+        {
+          value: 'bar',
+          label: '柱状图'
+        },
+        {
+          value: 'line',
+          label: '折线图'
+        }
+      ],
+      header: [], // 头部
+      data_list: [] // 数据
+    }
+  },
+  watch: {
+    chartsData() {
+      this.handleData()
     }
   },
   methods: {
     themeChange(val) {
       this.themeType = val
     },
-    fullScreen() {
-      this.isFull = true
+    xyChange() {
+      this.$emit('xyChange')
+    },
+    chartsChange(val) {
+      this.$emit('chartsChange', val)
+    },
+    // 动态渲染数据
+    handleData() {
+      let arr = []
+      this.header = this.chartsData.series.map(x => x.name)
+      this.header.unshift('#')
+      arr = this.chartsData.series.map(x => x.data)
+      arr.unshift(this.chartsData.xData)
+      this.data_list = this.merge(arr)
+    },
+    // 数组处理
+    merge(arrs) {
+      var maxLen = Math.max(...arrs.map(x => x.length))
+      var result = []
+      for (let i = 0; i < maxLen; i++) {
+        result.push(arrs.filter(x => x.length > i).map(x => x[i]))
+      }
+      return result
     }
+
   }
 }
 </script>
@@ -68,12 +134,13 @@ export default {
   width: 100%;
   height: calc(100vh - 150px);
 }
-.full-container {
-  position: relative;
-  width: calc(100vw - 250px);
-  height: 100vh;
-  z-index: 9999;
-  background-color: #fff;
+.dataTable {
+    position: absolute;
+    right: 0;
+    top: 60px;
+    border: 1px solid #ccc;
+    width: 39%;
+    height: 100%;
 }
 </style>
 
