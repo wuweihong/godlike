@@ -140,7 +140,8 @@ export default {
     top: 60px;
     border: 1px solid #ccc;
     width: 39%;
-    height: 100%;
+    height: calc(100vh - 150px);
+    overflow-y: scroll;
 }
 </style>
 
